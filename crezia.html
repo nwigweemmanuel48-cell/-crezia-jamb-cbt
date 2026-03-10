@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<meta name="theme-color" content="#080d1a"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="CREZIA CBT"/>
+<title>CREZIA JAMB CBT</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#080d1a;font-family:'DM Sans',sans-serif;color:#e2e8f0}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:#080d1a}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+@keyframes slideIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:translateX(0)}}
+.fu{animation:fadeUp 0.3s ease both}
+.si{animation:slideIn 0.25s ease both}
+.lift{transition:transform 0.17s,box-shadow 0.17s;cursor:pointer}
+.lift:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,0,0,0.5)}
+.tap:active{transform:scale(0.96)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+const QB = {
+  "English Language":[
+    {id:"en1",year:2023,topic:"Lexis",q:"Choose the word nearest in meaning to LOQUACIOUS.",opts:["A. Silent","B. Talkative","C. Aggressive","D. Timid"],ans:"B",exp:"Loquacious means tending to talk a great deal."},
+    {id:"en2",year:2022,topic:"Idioms",q:"'He threw cold water on the idea' means he:",opts:["A. Supported it","B. Washed it","C. Discouraged it","D. Was confused"],ans:"C",exp:"Throw cold water on means to discourage enthusiasm."},
+    {id:"en3",year:2021,topic:"Grammar",q:"Which sentence is grammatically correct?",opts:["A. The committee have made their decision","B. The committee has made its decision","C. The committee have made its decision","D. The committee has made their decision"],ans:"B",exp:"Committee is collective and takes singular has and its."},
+    {id:"en4",year:2020,topic:"Oral English",q:"In which word is the vowel sound /ae/ found?",opts:["A. late","B. cat","C. cart","D. mate"],ans:"B",exp:"Cat contains the short vowel /ae/ as in trap."},
+    {id:"en5",year:2019,topic:"Grammar",q:"The news ___ good.",opts:["A. are","B. were","C. is","D. have been"],ans:"C",exp:"News is uncountable and takes singular verb is."},
+  ],
+  "Mathematics":[
+    {id:"mt1",year:2023,topic:"Algebra",q:"If 2x + 3 = 11, find x.",opts:["A. 2","B. 4","C. 3","D. 5"],ans:"B",exp:"2x = 11 - 3 = 8, so x = 4."},
+    {id:"mt2",year:2022,topic:"Interest",q:"Simple interest on N5,000 at 8% p.a. for 3 years?",opts:["A. N1,200","B. N1,000","C. N1,500","D. N800"],ans:"A",exp:"SI = PRT/100 = 5000 x 8 x 3 / 100 = N1,200."},
+    {id:"mt3",year:2021,topic:"Logarithms",q:"Find log base 10 of 1000.",opts:["A. 2","B. 4","C. 3","D. 10"],ans:"C",exp:"log 1000 = log 10 cubed = 3."},
+    {id:"mt4",year:2020,topic:"Sets",q:"P={1,2,3,4}, Q={3,4,5,6}. P intersection Q =",opts:["A. {1,2}","B. {5,6}","C. {3,4}","D. {1,2,3,4,5,6}"],ans:"C",exp:"Intersection = elements in both sets = {3,4}."},
+    {id:"mt5",year:2019,topic:"Geometry",q:"Sum of interior angles of a hexagon?",opts:["A. 540","B. 720","C. 360","D. 900"],ans:"B",exp:"Sum = (n-2) x 180 = (6-2) x 180 = 720 degrees."},
+  ],
+  "Physics":[
+    {id:"ph1",year:2023,topic:"Mechanics",q:"A body with uniform velocity has a net force of:",opts:["A. Maximum","B. Zero","C. Increasing","D. Minimum"],ans:"B",exp:"Newton First Law: uniform velocity means zero net force."},
+    {id:"ph2",year:2022,topic:"Scalars",q:"Which is a scalar quantity?",opts:["A. Force","B. Velocity","C. Speed","D. Acceleration"],ans:"C",exp:"Speed has magnitude only and is a scalar."},
+    {id:"ph3",year:2021,topic:"Waves",q:"Speed of light in vacuum is approximately:",opts:["A. 3x10^6 m/s","B. 3x10^8 m/s","C. 3x10^10 m/s","D. 3x10^4 m/s"],ans:"B",exp:"Speed of light c is approximately 3x10^8 m/s."},
+    {id:"ph4",year:2020,topic:"Electricity",q:"Ohm's law: V is proportional to:",opts:["A. R","B. I","C. P","D. C"],ans:"B",exp:"V = IR, so V is proportional to I at constant resistance."},
+    {id:"ph5",year:2019,topic:"Heat",q:"The SI unit of heat energy is:",opts:["A. Watt","B. Calorie","C. Joule","D. Newton"],ans:"C",exp:"The SI unit of heat energy is the Joule."},
+  ],
+  "Chemistry":[
+    {id:"ch1",year:2023,topic:"Periodic Table",q:"Noble gases are in which group?",opts:["A. Group I","B. Group VII","C. Group 0","D. Group IV"],ans:"C",exp:"Noble gases are in Group 0 of the periodic table."},
+    {id:"ch2",year:2022,topic:"Bonding",q:"The bond type in NaCl is:",opts:["A. Covalent","B. Metallic","C. Ionic","D. Hydrogen"],ans:"C",exp:"NaCl forms by electron transfer and is an ionic bond."},
+    {id:"ch3",year:2021,topic:"Acids",q:"A solution with pH 3 is:",opts:["A. Neutral","B. Strongly alkaline","C. Weakly acidic","D. Strongly acidic"],ans:"D",exp:"pH below 7 is acidic. pH 3 is strongly acidic."},
+    {id:"ch4",year:2020,topic:"Electrolysis",q:"Oxidation during electrolysis occurs at the:",opts:["A. Cathode","B. Anode","C. Electrolyte","D. Cell"],ans:"B",exp:"Oxidation occurs at the anode."},
+    {id:"ch5",year:2019,topic:"Organic",q:"Which is a saturated hydrocarbon?",opts:["A. Ethene","B. Benzene","C. Propane","D. Ethyne"],ans:"C",exp:"Propane C3H8 has only single bonds and is saturated."},
+  ],
+  "Biology":[
+    {id:"bi1",year:2023,topic:"Cell",q:"The powerhouse of the cell is the:",opts:["A. Nucleus","B. Ribosome","C. Mitochondria","D. Golgi body"],ans:"C",exp:"Mitochondria produce ATP through cellular respiration."},
+    {id:"bi2",year:2022,topic:"Genetics",q:"An organism with two identical alleles is:",opts:["A. Heterozygous","B. Homozygous","C. Hybrid","D. Dominant"],ans:"B",exp:"Homozygous means two identical alleles such as AA or aa."},
+    {id:"bi3",year:2021,topic:"Ecology",q:"Organisms that feed on dead matter are called:",opts:["A. Parasites","B. Autotrophs","C. Saprophytes","D. Herbivores"],ans:"C",exp:"Saprophytes break down dead organic matter."},
+    {id:"bi4",year:2020,topic:"Photosynthesis",q:"Photosynthesis occurs in the:",opts:["A. Mitochondria","B. Chloroplast","C. Nucleus","D. Ribosome"],ans:"B",exp:"Chloroplasts contain chlorophyll where photosynthesis occurs."},
+    {id:"bi5",year:2019,topic:"Reproduction",q:"Fertilisation in humans normally occurs in the:",opts:["A. Uterus","B. Ovary","C. Fallopian tube","D. Vagina"],ans:"C",exp:"The egg is fertilised by sperm in the fallopian tube."},
+  ],
+  "Economics":[
+    {id:"ec1",year:2023,topic:"Demand",q:"When price rises, demand generally:",opts:["A. Rises","B. Falls","C. Stays same","D. Doubles"],ans:"B",exp:"Law of demand: higher price leads to lower quantity demanded."},
+    {id:"ec2",year:2022,topic:"Production",q:"The reward for capital as a factor of production is:",opts:["A. Rent","B. Wages","C. Interest","D. Profit"],ans:"C",exp:"Interest is the reward for capital."},
+    {id:"ec3",year:2021,topic:"National Income",q:"GDP stands for:",opts:["A. Gross Domestic Product","B. General Domestic Price","C. Gross Daily Production","D. General Development Plan"],ans:"A",exp:"GDP measures a country total economic output."},
+    {id:"ec4",year:2020,topic:"Money",q:"The primary function of money is as a:",opts:["A. Store of value","B. Medium of exchange","C. Unit of account","D. Standard of deferred payment"],ans:"B",exp:"Money primary function is medium of exchange."},
+    {id:"ec5",year:2019,topic:"Market",q:"A market with only one seller is called:",opts:["A. Oligopoly","B. Duopoly","C. Monopoly","D. Perfect competition"],ans:"C",exp:"Monopoly means a single seller dominating a market."},
+  ],
+  "Government":[
+    {id:"go1",year:2023,topic:"Constitution",q:"The supreme law of Nigeria is the:",opts:["A. Criminal Code","B. Constitution","C. Decree","D. Penal Code"],ans:"B",exp:"The Constitution is supreme over all laws in Nigeria."},
+    {id:"go2",year:2022,topic:"Arms",q:"The arm of government that makes laws is:",opts:["A. Executive","B. Judiciary","C. Legislature","D. Cabinet"],ans:"C",exp:"The Legislature (National Assembly) makes laws."},
+    {id:"go3",year:2021,topic:"Federalism",q:"Nigeria operates which system of government?",opts:["A. Unitary","B. Confederal","C. Federal","D. Presidential only"],ans:"C",exp:"Nigeria practices federalism with power shared between centre and states."},
+    {id:"go4",year:2020,topic:"History",q:"The first political party in Nigeria was:",opts:["A. NPC","B. NCNC","C. NNDP","D. AG"],ans:"C",exp:"The NNDP was formed in 1923 by Herbert Macaulay."},
+    {id:"go5",year:2019,topic:"Elections",q:"The body that conducts elections in Nigeria is:",opts:["A. NJC","B. INEC","C. EFCC","D. NPC"],ans:"B",exp:"INEC conducts elections in Nigeria."},
+  ],
+  "Literature":[
+    {id:"li1",year:2023,topic:"Drama",q:"A dramatic monologue has one character who:",opts:["A. Sings to audience","B. Speaks to a silent listener","C. Speaks as the poet","D. Is narrated by chorus"],ans:"B",exp:"A dramatic monologue features one speaker addressing a silent listener."},
+    {id:"li2",year:2022,topic:"Poetry",q:"Repetition of initial consonant sounds is called:",opts:["A. Assonance","B. Rhyme","C. Alliteration","D. Onomatopoeia"],ans:"C",exp:"Alliteration is repetition of consonant sounds at start of nearby words."},
+    {id:"li3",year:2021,topic:"Prose",q:"A story within a story is called:",opts:["A. Subplot","B. Frame narrative","C. Flashback","D. Foreshadowing"],ans:"B",exp:"Frame narrative is a story that contains another story within it."},
+    {id:"li4",year:2020,topic:"Figures",q:"The wind whispered through the trees is:",opts:["A. Simile","B. Metaphor","C. Personification","D. Hyperbole"],ans:"C",exp:"Giving human action to a non-human thing is personification."},
+    {id:"li5",year:2019,topic:"Drama",q:"A tragic flaw in a character is called:",opts:["A. Nemesis","B. Catharsis","C. Hubris","D. Hamartia"],ans:"D",exp:"Hamartia is the tragic flaw leading to a character downfall."},
+  ],
+  "Geography":[
+    {id:"ge1",year:2023,topic:"Climate",q:"Rainfall caused by air rising over mountains is:",opts:["A. Convectional","B. Orographic","C. Frontal","D. Cyclonic"],ans:"B",exp:"Orographic rainfall occurs when moist air rises over mountains and cools."},
+    {id:"ge2",year:2022,topic:"Maps",q:"Lines joining places of equal altitude are called:",opts:["A. Isobars","B. Isotherms","C. Contours","D. Meridians"],ans:"C",exp:"Contour lines connect points of equal elevation."},
+    {id:"ge3",year:2021,topic:"Population",q:"Movement from rural to urban areas is called:",opts:["A. Emigration","B. Immigration","C. Rural-Urban migration","D. Nomadism"],ans:"C",exp:"Rural-urban migration means people moving from countryside to cities."},
+    {id:"ge4",year:2020,topic:"Rocks",q:"Granite is which type of rock?",opts:["A. Sedimentary","B. Metamorphic","C. Igneous","D. Fossil"],ans:"C",exp:"Granite is an intrusive igneous rock formed from cooled magma."},
+    {id:"ge5",year:2019,topic:"Rivers",q:"The mouth of a river is where it:",opts:["A. Starts","B. Gets tributaries","C. Flows into a lake or sea","D. Changes direction"],ans:"C",exp:"The mouth is where a river empties into a larger body of water."},
+  ],
+  "Commerce":[
+    {id:"co1",year:2023,topic:"Documents",q:"The document listing goods sent to a buyer is:",opts:["A. Receipt","B. Invoice","C. Debit note","D. Statement"],ans:"B",exp:"An invoice is a bill from the seller listing goods and prices."},
+    {id:"co2",year:2022,topic:"Banking",q:"A cheque payable only to the named person is:",opts:["A. Open cheque","B. Bearer cheque","C. Order cheque","D. Crossed cheque"],ans:"C",exp:"An order cheque is payable only to the named payee."},
+    {id:"co3",year:2021,topic:"Insurance",q:"The principle preventing profit from insurance is:",opts:["A. Subrogation","B. Indemnity","C. Utmost good faith","D. Insurable interest"],ans:"B",exp:"Indemnity restores the insured to original position with no profit."},
+    {id:"co4",year:2020,topic:"Warehousing",q:"A government store for imported goods awaiting duty is:",opts:["A. Private warehouse","B. Bonded warehouse","C. Public warehouse","D. Distribution centre"],ans:"B",exp:"Bonded warehouses store dutiable goods under government control."},
+    {id:"co5",year:2019,topic:"Distribution",q:"A channel with no intermediary is:",opts:["A. Producer-Retailer-Consumer","B. Producer-Wholesaler-Consumer","C. Producer-Consumer","D. Producer-Agent-Consumer"],ans:"C",exp:"Direct channel means Producer to Consumer with no middleman."},
+  ],
+};
+
+const ALL_SUBJECTS = Object.keys(QB);
+const ICONS = {"English Language":"📝","Mathematics":"📐","Physics":"⚡","Chemistry":"🧪","Biology":"🔬","Economics":"📊","Government":"🏛️","Literature":"📖","Geography":"🌍","Commerce":"🏪"};
+const COLORS = {"English Language":"#f59e0b","Mathematics":"#6366f1","Physics":"#06b6d4","Chemistry":"#10b981","Biology":"#84cc16","Economics":"#f97316","Government":"#8b5cf6","Literature":"#ec4899","Geography":"#14b8a6","Commerce":"#ef4444"};
+
+const G = {bg:"#080d1a",card:"#0f1729",border:"#1a2235",text:"#e2e8f0",dim:"#64748b",muted:"#475569",accent:"#f59e0b"};
+const shuffle = arr => [...arr].sort(() => Math.random() - 0.5);
+const fmt = s => {
+  const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+  return (h>0?h+":":"") + String(m).padStart(2,"0") + ":" + String(sec).padStart(2,"0");
+};
+
+function App() {
+  const [screen, setScreen] = useState("home");
+  const [navTab, setNavTab] = useState("home");
+  const [pickedSubjects, setPickedSubjects] = useState([]);
+  const [subjectQs, setSubjectQs] = useState({});
+  const [cursors, setCursors] = useState({});
+  const [allAnswers, setAllAnswers] = useState({});
+  const [activeSubject, setActiveSubject] = useState("");
+  const [timeLeft, setTimeLeft] = useState(7200);
+  const [revealed, setRevealed] = useState(false);
+  const [aiExp, setAiExp] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [yearFilter, setYearFilter] = useState("All");
+  const [classSub, setClassSub] = useState(null);
+  const [perf, setPerf] = useState({});
+  const [chatH, setChatH] = useState([]);
+  const [chatIn, setChatIn] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
+  const timerRef = useRef(null);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => { chatEndRef.current && chatEndRef.current.scrollIntoView({behavior:"smooth"}); }, [chatH]);
+
+  useEffect(() => {
+    if (screen !== "exam") { clearInterval(timerRef.current); return; }
+    timerRef.current = setInterval(() => {
+      setTimeLeft(t => { if (t <= 1) { clearInterval(timerRef.current); submitExam(); return 0; } return t-1; });
+    }, 1000);
+    return () => clearInterval(timerRef.current);
+  }, [screen]);
+
+  function launchExam() {
+    if (pickedSubjects.length !== 4) return;
+    const qMap = {}, curMap = {};
+    pickedSubjects.forEach(s => {
+      const pool = QB[s] || [];
+      const filtered = yearFilter === "All" ? pool : pool.filter(q => q.year === parseInt(yearFilter));
+      qMap[s] = shuffle(filtered.length ? filtered : pool);
+      curMap[s] = 0;
+    });
+    setSubjectQs(qMap); setCursors(curMap); setAllAnswers({});
+    setActiveSubject(pickedSubjects[0]); setTimeLeft(7200);
+    setRevealed(false); setAiExp(""); setScreen("exam");
+  }
+
+  function launchSingle(subject) {
+    const pool = QB[subject] || [];
+    const filtered = yearFilter === "All" ? pool : pool.filter(q => q.year === parseInt(yearFilter));
+    const qs = shuffle(filtered.length ? filtered : pool);
+    setPickedSubjects([subject]); setSubjectQs({[subject]:qs});
+    setCursors({[subject]:0}); setAllAnswers({});
+    setActiveSubject(subject); setTimeLeft(1800);
+    setRevealed(false); setAiExp(""); setScreen("exam");
+  }
+
+  function submitExam() {
+    clearInterval(timerRef.current);
+    setPerf(prev => {
+      const next = {...prev};
+      pickedSubjects.forEach(s => {
+        const qs = subjectQs[s] || [];
+        const correct = qs.filter(q => allAnswers[q.id] === q.ans).length;
+        if (!next[s]) next[s] = {a:0,c:0,t:0};
+        next[s] = {a:next[s].a+1, c:next[s].c+correct, t:next[s].t+qs.length};
+      });
+      return next;
+    });
+    setScreen("result");
+  }
+
+  function switchSubject(s) { setActiveSubject(s); setRevealed(false); setAiExp(""); }
+  function goTo(idx) { setCursors(c => ({...c,[activeSubject]:idx})); setRevealed(false); setAiExp(""); }
+  function selectAnswer(qId, letter) { if (!revealed) setAllAnswers(a => ({...a,[qId]:letter})); }
+
+  async function fetchAI(q) {
+    setAiLoading(true); setAiExp("");
+    try {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:"You are a JAMB tutor for Nigerian students. Explain this question step by step in simple English under 120 words, then add one exam tip. Question: "+q.q+" Options: "+q.opts.join(", ")+" Correct Answer: "+q.ans}]})
+      });
+      const d = await r.json();
+      setAiExp(d.content&&d.content[0]?d.content[0].text:"Could not load.");
+    } catch(e) { setAiExp("AI unavailable. Check your connection."); }
+    setAiLoading(false);
+  }
+
+  async function sendChat() {
+    if (!chatIn.trim() || chatLoading) return;
+    const msg = chatIn.trim(); setChatIn("");
+    const newH = [...chatH, {role:"user",content:msg}];
+    setChatH(newH); setChatLoading(true);
+    try {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:"You are an expert JAMB tutor for Nigerian secondary school students. Answer questions about JAMB subjects clearly and be encouraging.",messages:newH})
+      });
+      const d = await r.json();
+      setChatH([...newH, {role:"assistant",content:d.content&&d.content[0]?d.content[0].text:"Sorry, could not respond."}]);
+    } catch(e) { setChatH([...newH, {role:"assistant",content:"Connection error. Please try again."}]); }
+    setChatLoading(false);
+  }
+
+  const answeredCount = s => (subjectQs[s]||[]).filter(x => allAnswers[x.id]).length;
+  const totalCount = s => (subjectQs[s]||[]).length;
+  const years = ["All",...Array.from({length:26},(_,i)=>2025-i)];
+
+  // EXAM SCREEN
+  if (screen === "exam") {
+    const qs = subjectQs[activeSubject] || [];
+    const cur = cursors[activeSubject] || 0;
+    const q = qs[cur];
+    const chosen = q ? allAnswers[q.id] : null;
+    const tc = timeLeft<300?"#ef4444":timeLeft<600?"#f59e0b":"#10b981";
+
+    return (
+      <div style={{minHeight:"100vh",background:G.bg,color:G.text,maxWidth:900,margin:"0 auto",display:"flex",flexDirection:"column"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"12px 16px",borderBottom:"1px solid "+G.border,background:G.bg,position:"sticky",top:0,zIndex:200}}>
+          <span style={{fontFamily:"Syne,sans-serif",fontSize:18,fontWeight:900,color:"#fff"}}>CREZIA <span style={{color:G.accent}}>CBT</span></span>
+          <div style={{fontFamily:"Syne,sans-serif",fontWeight:900,fontSize:22,color:tc}}>{fmt(timeLeft)}</div>
+          <button className="tap" onClick={submitExam} style={{background:"#ef4444",border:"none",color:"#fff",borderRadius:10,padding:"9px 18px",cursor:"pointer",fontSize:13,fontWeight:800}}>Submit All</button>
+        </div>
+
+        <div style={{background:"#060b16",borderBottom:"1px solid "+G.border,padding:"0 16px",display:"flex",gap:4,overflowX:"auto",flexShrink:0}}>
+          {pickedSubjects.map(s => {
+            const isActive = s===activeSubject;
+            const answered = answeredCount(s), total = totalCount(s);
+            const allDone = answered===total && total>0;
+            return (
+              <button key={s} className="tap" onClick={() => switchSubject(s)} style={{display:"flex",alignItems:"center",gap:8,padding:"12px 16px",border:"none",cursor:"pointer",background:"transparent",fontSize:13,fontWeight:isActive?700:500,color:isActive?COLORS[s]:"#64748b",borderBottom:isActive?"3px solid "+COLORS[s]:"3px solid transparent",whiteSpace:"nowrap",flexShrink:0}}>
+                <span>{ICONS[s]}</span>
+                <span>{s.split(" ")[0]}</span>
+                <span style={{background:allDone?COLORS[s]+"33":isActive?G.border:"#060b16",color:allDone?COLORS[s]:"#94a3b8",borderRadius:20,padding:"1px 8px",fontSize:10,fontWeight:700,border:"1px solid "+(allDone?COLORS[s]:G.border)}}>{answered}/{total}</span>
+              </button>
+            );
+          })}
+          <button className="tap" onClick={() => {clearInterval(timerRef.current);setScreen("home");setNavTab("home");}} style={{marginLeft:"auto",padding:"12px 14px",border:"none",background:"transparent",color:"#64748b",cursor:"pointer",fontSize:12,flexShrink:0}}>Exit</button>
+        </div>
+
+        {q && (
+          <div key={q.id} className="si" style={{flex:1,padding:"14px 16px",overflowY:"auto"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+              <div style={{color:G.dim,fontSize:12}}>{activeSubject} — Q{cur+1} of {qs.length}</div>
+              <div style={{color:G.dim,fontSize:12}}>{answeredCount(activeSubject)}/{totalCount(activeSubject)} answered</div>
+            </div>
+
+            <div style={{background:G.card,borderRadius:16,padding:22,border:"1px solid "+G.border}}>
+              <div style={{display:"flex",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+                <span style={{background:G.border,borderRadius:6,padding:"3px 10px",fontSize:11,color:"#94a3b8"}}>Year: {q.year}</span>
+                <span style={{background:G.border,borderRadius:6,padding:"3px 10px",fontSize:11,color:"#94a3b8"}}>{q.topic}</span>
+                {chosen && <span style={{background:"#172554",borderRadius:6,padding:"3px 10px",fontSize:11,color:"#60a5fa",border:"1px solid #1e40af"}}>Answered</span>}
+              </div>
+              <p style={{fontSize:16,fontWeight:600,color:"#f1f5f9",lineHeight:1.75,marginBottom:22}}>{q.q}</p>
+              <div style={{display:"flex",flexDirection:"column",gap:10}}>
+                {q.opts.map(opt => {
+                  const letter=opt[0], isMine=chosen===letter, isRight=q.ans===letter;
+                  let bg=G.bg, bd=G.border;
+                  if (revealed&&isRight){bg="#052e16";bd="#16a34a";}
+                  else if (revealed&&isMine&&!isRight){bg="#2d0a0a";bd="#dc2626";}
+                  else if (isMine){bg="#172554";bd="#3b82f6";}
+                  return (
+                    <button key={opt} className="tap" onClick={() => selectAnswer(q.id,letter)} style={{display:"flex",alignItems:"center",gap:14,background:bg,border:"1px solid "+bd,borderRadius:10,padding:"13px 16px",cursor:revealed?"default":"pointer",color:G.text,fontSize:14,textAlign:"left",width:"100%"}}>
+                      <span style={{background:G.border,borderRadius:6,padding:"3px 8px",fontWeight:800,fontSize:12,minWidth:26,textAlign:"center",color:"#f1f5f9",flexShrink:0}}>{letter}</span>
+                      <span style={{flex:1}}>{opt.slice(3)}</span>
+                      {revealed&&isRight&&<span style={{color:"#22c55e",fontWeight:700,flexShrink:0}}>✓</span>}
+                      {revealed&&isMine&&!isRight&&<span style={{color:"#ef4444",fontWeight:700,flexShrink:0}}>✗</span>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {chosen&&!revealed&&(
+                <button className="tap" onClick={() => {setRevealed(true);fetchAI(q);}} style={{background:G.accent,border:"none",color:"#000",borderRadius:12,padding:"14px 24px",fontSize:14,fontWeight:800,cursor:"pointer",width:"100%",marginTop:18}}>
+                  Check Answer + Get AI Explanation
+                </button>
+              )}
+
+              {revealed&&(
+                <div className="fu" style={{background:G.bg,borderRadius:12,padding:18,marginTop:18,border:"1px solid "+G.border}}>
+                  <div style={{fontWeight:700,color:"#60a5fa",marginBottom:8,fontSize:13}}>Explanation</div>
+                  <p style={{color:"#94a3b8",fontSize:13,lineHeight:1.75}}>{q.exp}</p>
+                  {aiLoading&&<p style={{color:G.accent,fontSize:12,marginTop:12,fontStyle:"italic",animation:"pulse 1s infinite"}}>Claude is generating a detailed explanation...</p>}
+                  {!aiLoading&&aiExp&&(
+                    <div style={{background:G.card,borderRadius:10,padding:14,marginTop:14,border:"1px solid "+G.border}}>
+                      <div style={{color:"#34d399",fontWeight:700,fontSize:12,marginBottom:8}}>AI Deep Explanation</div>
+                      <p style={{color:"#cbd5e1",fontSize:13,lineHeight:1.8,whiteSpace:"pre-wrap"}}>{aiExp}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div style={{display:"flex",gap:10,marginTop:14}}>
+              <button className="tap" disabled={cur===0} onClick={() => goTo(cur-1)} style={{flex:1,background:G.card,border:"1px solid "+G.border,color:cur===0?"#334155":G.text,borderRadius:10,padding:12,fontSize:14,fontWeight:700,cursor:cur===0?"default":"pointer"}}>Prev</button>
+              {cur<qs.length-1
+                ? <button className="tap" onClick={() => goTo(cur+1)} style={{flex:1,background:G.card,border:"1px solid "+G.border,color:G.text,borderRadius:10,padding:12,fontSize:14,fontWeight:700,cursor:"pointer"}}>Next</button>
+                : <button className="tap" onClick={() => {const next=pickedSubjects.find(s=>s!==activeSubject&&answeredCount(s)<totalCount(s));if(next)switchSubject(next);}} style={{flex:1,background:COLORS[activeSubject],border:"none",color:"#fff",borderRadius:10,padding:12,fontSize:14,fontWeight:700,cursor:"pointer"}}>
+                    {pickedSubjects.find(s=>s!==activeSubject&&answeredCount(s)<totalCount(s))?"Next Subject":"All Done"}
+                  </button>
+              }
+            </div>
+
+            <div style={{marginTop:14}}>
+              <div style={{color:G.dim,fontSize:11,marginBottom:8,fontWeight:600}}>QUESTION NAVIGATOR</div>
+              <div style={{display:"flex",flexWrap:"wrap",gap:5}}>
+                {qs.map((x,i) => (
+                  <button key={x.id} className="tap" onClick={() => goTo(i)} style={{width:32,height:32,borderRadius:7,border:"none",fontSize:11,fontWeight:700,cursor:"pointer",background:allAnswers[x.id]?COLORS[activeSubject]+"33":G.border,color:i===cur?COLORS[activeSubject]:allAnswers[x.id]?COLORS[activeSubject]:G.dim,outline:i===cur?"2px solid "+COLORS[activeSubject]:"none"}}>{i+1}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // RESULT SCREEN
+  if (screen === "result") {
+    const subResults = pickedSubjects.map(s => {
+      const qs = subjectQs[s]||[], correct = qs.filter(q=>allAnswers[q.id]===q.ans).length;
+      return {s, correct, total:qs.length, pct:qs.length?Math.round(correct/qs.length*100):0};
+    });
+    const totalCorrect = subResults.reduce((a,r)=>a+r.correct,0);
+    const totalQs = subResults.reduce((a,r)=>a+r.total,0);
+    const overallPct = totalQs?Math.round(totalCorrect/totalQs*100):0;
+
+    return (
+      <div style={{minHeight:"100vh",background:G.bg,padding:"20px 16px",maxWidth:700,margin:"0 auto"}}>
+        <div className="fu">
+          <div style={{background:G.card,borderRadius:20,padding:"32px 24px",textAlign:"center",border:"1px solid "+G.border,marginBottom:20}}>
+            <div style={{fontSize:52,marginBottom:10}}>{overallPct>=70?"🏆":overallPct>=50?"👍":"📖"}</div>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:48,fontWeight:900,color:"#f1f5f9"}}>{totalCorrect}<span style={{fontSize:22,color:G.dim}}>/{totalQs}</span></div>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:28,fontWeight:900,color:overallPct>=70?"#10b981":overallPct>=50?"#f59e0b":"#ef4444",marginBottom:10}}>{overallPct}%</div>
+            <p style={{color:G.dim,fontSize:14}}>{overallPct>=70?"Outstanding — you are on track for JAMB!":overallPct>=50?"Good effort. Review weak subjects and retry.":"Keep practising — every session strengthens you."}</p>
+          </div>
+
+          {subResults.map(({s,correct,total,pct}) => {
+            const col = pct>=70?"#10b981":pct>=50?"#f59e0b":"#ef4444";
+            return (
+              <div key={s} style={{background:G.card,borderRadius:14,padding:16,border:"1px solid "+G.border,marginBottom:10}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                  <div style={{display:"flex",alignItems:"center",gap:10}}>
+                    <span style={{fontSize:22}}>{ICONS[s]}</span>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:14,color:"#f1f5f9"}}>{s}</div>
+                      <div style={{fontSize:11,color:G.dim}}>{correct} correct of {total}</div>
+                    </div>
+                  </div>
+                  <div style={{fontFamily:"Syne,sans-serif",fontSize:24,fontWeight:900,color:col}}>{pct}%</div>
+                </div>
+                <div style={{background:G.bg,borderRadius:6,height:6,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:pct+"%",background:col,borderRadius:6}}/>
+                </div>
+              </div>
+            );
+          })}
+
+          <div style={{display:"flex",gap:10,marginTop:10,flexWrap:"wrap"}}>
+            <button className="tap" onClick={launchExam} style={{flex:1,background:G.accent,border:"none",color:"#000",borderRadius:12,padding:"14px 20px",fontSize:14,fontWeight:800,cursor:"pointer"}}>Retry</button>
+            <button className="tap" onClick={() => {setScreen("home");setNavTab("home");}} style={{flex:1,background:G.border,border:"none",color:G.text,borderRadius:12,padding:"14px 20px",fontSize:14,fontWeight:700,cursor:"pointer"}}>New Exam</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // HOME SCREENS
+  return (
+    <div style={{minHeight:"100vh",background:G.bg,color:G.text,maxWidth:800,margin:"0 auto",paddingBottom:60}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 20px",borderBottom:"1px solid "+G.border,position:"sticky",top:0,background:G.bg,zIndex:100}}>
+        <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:900,color:"#fff"}}>CREZIA <span style={{color:G.accent}}>CBT</span></div>
+        <div style={{display:"flex",gap:3}}>
+          {[["home","Home"],["dashboard","Stats"],["chat","AI Tutor"]].map(([t,label]) => (
+            <button key={t} onClick={() => setNavTab(t)} style={{background:navTab===t?G.card:"transparent",border:"none",color:navTab===t?G.accent:G.muted,borderRadius:8,padding:"7px 12px",cursor:"pointer",fontSize:12,fontWeight:700}}>{label}</button>
+          ))}
+        </div>
+      </div>
+
+      {navTab==="home" && (
+        <div className="fu">
+          <div style={{textAlign:"center",padding:"36px 20px 20px"}}>
+            <h1 style={{fontFamily:"Syne,sans-serif",fontSize:"clamp(28px,7vw,50px)",fontWeight:900,color:"#fff",lineHeight:1.1,marginBottom:12}}>Ace Your JAMB<br/><span style={{color:G.accent}}>With CREZIA</span></h1>
+            <p style={{color:G.dim,fontSize:14,lineHeight:1.7,maxWidth:420,margin:"0 auto"}}>Real JAMB format · Switch subjects freely · 2-hour countdown · AI explanations</p>
+          </div>
+
+          <div style={{display:"flex",alignItems:"center",gap:10,margin:"0 20px 20px",background:G.card,borderRadius:12,padding:"12px 16px",border:"1px solid "+G.border}}>
+            <span style={{color:G.dim,fontSize:13}}>Filter by Year:</span>
+            <select value={yearFilter} onChange={e=>setYearFilter(e.target.value)} style={{background:G.border,color:G.text,border:"none",borderRadius:8,padding:"6px 12px",fontSize:13,cursor:"pointer"}}>
+              {years.map(y => <option key={y}>{y}</option>)}
+            </select>
+          </div>
+
+          <div style={{margin:"0 20px 24px",background:G.card,borderRadius:16,padding:20,border:"1px solid #f59e0b33",borderTop:"3px solid "+G.accent}}>
+            <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
+              <span style={{fontSize:28}}>🎯</span>
+              <div>
+                <div style={{fontFamily:"Syne,sans-serif",fontWeight:800,fontSize:16,color:"#f1f5f9"}}>Full JAMB Simulation</div>
+                <div style={{color:G.dim,fontSize:12}}>Select 4 subjects · One shared 2-hour timer · Switch freely</div>
+              </div>
+            </div>
+            <div style={{color:"#94a3b8",fontSize:12,fontWeight:700,marginBottom:10}}>SELECT 4 SUBJECTS <span style={{color:G.accent}}>({pickedSubjects.length}/4)</span></div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:8,marginBottom:16}}>
+              {ALL_SUBJECTS.map(s => {
+                const sel = pickedSubjects.includes(s);
+                const disabled = !sel && pickedSubjects.length===4;
+                return (
+                  <button key={s} className="tap" disabled={disabled}
+                    style={{display:"flex",alignItems:"center",gap:9,background:sel?COLORS[s]+"22":G.bg,border:"1px solid "+(sel?COLORS[s]:G.border),borderRadius:10,padding:"10px 14px",cursor:disabled?"not-allowed":"pointer",color:sel?"#fff":"#94a3b8",fontSize:13,fontWeight:sel?700:500,opacity:disabled?0.3:1,width:"100%",textAlign:"left"}}
+                    onClick={() => setPickedSubjects(sel?pickedSubjects.filter(x=>x!==s):[...pickedSubjects,s])}>
+                    <span>{ICONS[s]}</span>
+                    <span style={{flex:1}}>{s}</span>
+                    {sel&&<span style={{color:COLORS[s],fontWeight:900}}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+            {pickedSubjects.length===4
+              ? <button className="tap" onClick={launchExam} style={{background:G.accent,border:"none",color:"#000",borderRadius:12,padding:"16px 28px",fontSize:15,fontWeight:900,cursor:"pointer",width:"100%"}}>Start JAMB Simulation — 2:00:00</button>
+              : <div style={{background:G.bg,borderRadius:10,padding:"12px 16px",textAlign:"center",color:G.dim,fontSize:13,border:"1px solid "+G.border}}>Pick {4-pickedSubjects.length} more subject{4-pickedSubjects.length!==1?"s":""} to begin</div>
+            }
+          </div>
+
+          <div style={{margin:"0 20px"}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontWeight:800,fontSize:15,color:"#f1f5f9",marginBottom:4}}>Single Subject Practice</div>
+            <div style={{color:G.dim,fontSize:12,marginBottom:14}}>30 minutes · Deep focus on one subject</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:10}}>
+              {ALL_SUBJECTS.map(s => (
+                <button key={s} className="lift tap"
+                  style={{background:G.card,border:"1px solid "+G.border,borderTop:"3px solid "+COLORS[s],borderRadius:12,padding:"18px 12px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:8}}
+                  onClick={() => launchSingle(s)}>
+                  <span style={{fontSize:26}}>{ICONS[s]}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:"#cbd5e1",textAlign:"center"}}>{s}</span>
+                  <span style={{fontSize:11,color:COLORS[s],fontWeight:700}}>Practice</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {navTab==="dashboard" && (
+        <div className="fu" style={{padding:"24px 20px"}}>
+          <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:900,color:"#f1f5f9",marginBottom:4}}>Performance</div>
+          <div style={{color:G.dim,fontSize:13,marginBottom:20}}>Your scores this session</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(160px,1fr))",gap:12}}>
+            {ALL_SUBJECTS.map(s => {
+              const d=perf[s], p=d&&d.t?Math.round(d.c/d.t*100):0;
+              const col=p>=70?"#10b981":p>=50?"#f59e0b":"#ef4444";
+              return (
+                <div key={s} className="lift" style={{background:G.card,borderRadius:14,padding:16,border:"1px solid "+G.border}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                    <span style={{fontSize:22}}>{ICONS[s]}</span>
+                    <span style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:900,color:d?col:"#334155"}}>{d?p+"%":"—"}</span>
+                  </div>
+                  <div style={{fontWeight:700,fontSize:12,color:"#94a3b8",marginBottom:8}}>{s}</div>
+                  <div style={{background:G.bg,borderRadius:6,height:6,overflow:"hidden"}}>
+                    <div style={{height:"100%",width:p+"%",background:col,borderRadius:6}}/>
+                  </div>
+                  <div style={{marginTop:8,fontSize:11,color:G.muted}}>{d?d.c+"/"+d.t+" correct":"No attempts yet"}</div>
+                </div>
+              );
+            })}
+          </div>
+          {Object.keys(perf).length>0&&<button className="tap" onClick={()=>setPerf({})} style={{background:G.border,border:"none",color:G.dim,borderRadius:8,padding:"10px 18px",cursor:"pointer",fontSize:13,marginTop:20}}>Reset Stats</button>}
+        </div>
+      )}
+
+      {navTab==="chat" && (
+        <div className="fu" style={{display:"flex",flexDirection:"column",height:"calc(100vh - 70px)"}}>
+          <div style={{padding:"20px 20px 10px"}}>
+            <div style={{fontFamily:"Syne,sans-serif",fontSize:22,fontWeight:900,color:"#f1f5f9",marginBottom:4}}>AI Tutor</div>
+            <div style={{color:G.dim,fontSize:13}}>Ask anything about your JAMB subjects</div>
+          </div>
+          <div style={{flex:1,overflowY:"auto",padding:"10px 20px",display:"flex",flexDirection:"column",gap:14}}>
+            {chatH.length===0&&(
+              <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flex:1,textAlign:"center",gap:14,padding:20}}>
+                <div style={{fontSize:48}}>🎓</div>
+                <div style={{color:G.muted,fontSize:14}}>Ask me anything about JAMB!</div>
+                <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center",maxWidth:420}}>
+                  {["Explain the water cycle","What is GDP?","How does photosynthesis work?","Explain ionic bonding"].map(s=>(
+                    <button key={s} className="tap" onClick={()=>setChatIn(s)} style={{background:G.card,border:"1px solid "+G.border,borderRadius:8,padding:"8px 14px",color:"#94a3b8",fontSize:12,cursor:"pointer"}}>{s}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {chatH.map((m,i) => (
+              <div key={i} style={{alignSelf:m.role==="user"?"flex-end":"flex-start",background:m.role==="user"?"#172554":G.card,border:"1px solid "+(m.role==="user"?"#1e40af":G.border),borderRadius:12,padding:"12px 16px",maxWidth:"82%"}}>
+                {m.role==="assistant"&&<div style={{fontSize:12,marginBottom:6,color:"#34d399",fontWeight:700}}>AI Tutor</div>}
+                <div style={{fontSize:13,lineHeight:1.75,color:G.text,whiteSpace:"pre-wrap"}}>{m.content}</div>
+              </div>
+            ))}
+            {chatLoading&&<div style={{alignSelf:"flex-start",background:G.card,border:"1px solid "+G.border,borderRadius:12,padding:"12px 16px"}}><span style={{color:G.accent,fontSize:13,fontStyle:"italic"}}>Thinking...</span></div>}
+            <div ref={chatEndRef}/>
+          </div>
+          <div style={{display:"flex",gap:10,padding:"12px 20px",borderTop:"1px solid "+G.border}}>
+            <input value={chatIn} onChange={e=>setChatIn(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendChat()} placeholder="Ask your JAMB tutor anything..." style={{flex:1,background:G.card,border:"1px solid "+G.border,borderRadius:10,padding:"12px 16px",color:G.text,fontSize:14}}/>
+            <button className="tap" onClick={sendChat} disabled={chatLoading||!chatIn.trim()} style={{background:G.accent,border:"none",color:"#000",borderRadius:10,padding:"12px 20px",fontWeight:800,cursor:"pointer",fontSize:14,opacity:(!chatIn.trim()||chatLoading)?0.5:1}}>Send</button>
+          </div>
+        </div>
+      )}
+
+      <div style={{textAlign:"center",padding:"30px 20px 10px",color:G.border,fontSize:11}}>CREZIA JAMB CBT · Powered by Claude AI · 2025</div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
